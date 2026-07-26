@@ -8,7 +8,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  # contents: write is needed to publish the test-build release below, which is
+  # how a phone gets the APK: Actions artifacts are zipped and need a signed-in
+  # GitHub session, a release asset is a plain link that works anywhere.
+  contents: write
   checks: write
 
 jobs:
@@ -90,6 +93,11 @@ jobs:
             echo "::notice title=Release APK size (the number the store listing claims)::$(du -h "$RELEASE" | cut -f1)"
           fi
 
+      - name: Name the debug APK for humans
+        run: |
+          APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
+          mv "$APK" app/build/outputs/apk/debug/roshan-camera-debug.apk
+
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
@@ -106,3 +114,21 @@ jobs:
             app/build/reports/tests/**
             app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
+
+      - name: Publish the debug APK as a downloadable test build
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: test-build
+          name: Latest test build
+          body: |
+            Debug build of the latest commit on `main`. Tap
+            `roshan-camera-debug.apk` below to install it on a phone.
+
+            Signed with the standard Android debug key, so it installs
+            alongside a Play Store copy rather than replacing it. Not for
+            distribution.
+
+            Commit: ${{ github.sha }}
+          files: app/build/outputs/apk/debug/*.apk
+          prerelease: true
+          make_latest: false
