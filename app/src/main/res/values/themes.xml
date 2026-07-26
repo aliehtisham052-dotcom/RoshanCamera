@@ -24,7 +24,6 @@
     <style name="Theme.RoshanCamera.Splash" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/brand_ink</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
-        <item name="windowSplashScreenBrandingImage">@drawable/ic_splash_wordmark</item>
         <item name="postSplashScreenTheme">@style/Theme.RoshanCamera</item>
     </style>
 

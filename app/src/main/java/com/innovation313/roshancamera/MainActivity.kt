@@ -3,6 +3,9 @@ package com.innovation313.roshancamera
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import android.view.View
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
@@ -17,6 +20,7 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.innovation313.roshancamera.databinding.ActivityMainBinding
@@ -61,12 +65,11 @@ class MainActivity : AppCompatActivity() {
     private var imageCapture: ImageCapture? = null
     private var latestState: LocationState = LocationState.Searching
 
+    private var askedThisLaunch = false
+
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { granted ->
-        if (granted[Manifest.permission.CAMERA] == true) startCamera()
-        if (granted[Manifest.permission.ACCESS_FINE_LOCATION] == true) locationEngine.start()
-    }
+    ) { applyPermissionState() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Must run before super.onCreate so the system hands over from the
@@ -90,15 +93,21 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        binding.permissionAction.setOnClickListener { onPermissionActionClicked() }
+
+        // TextureView rather than SurfaceView. Several OEM builds never deliver
+        // a first frame to a SurfaceView-backed preview, and the symptom is a
+        // permanently black screen with no error to go on.
+        binding.preview.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+
         observeLocation()
-        requestWhatIsMissing()
     }
 
     override fun onStart() {
         super.onStart()
-        // Pre-warm: by the time the preview is drawn a fix is usually already
-        // in hand, so the first photo is not the one with the worst location.
-        locationEngine.start()
+        // Re-checked on every entry, so returning from the system settings
+        // screen with a permission newly granted just works.
+        applyPermissionState()
     }
 
     override fun onStop() {
@@ -106,15 +115,64 @@ class MainActivity : AppCompatActivity() {
         locationEngine.stop()
     }
 
-    private fun requestWhatIsMissing() {
-        val needed = REQUIRED_PERMISSIONS.filter {
-            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
-        }
-        if (needed.isEmpty()) {
+    private fun granted(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+
+    /**
+     * The single place that decides what the screen shows.
+     *
+     * Without this the app had no answer for a refused permission: the preview
+     * stayed black and the pill read "finding your location" forever, which
+     * looks exactly like a broken app rather than a missing grant.
+     */
+    private fun applyPermissionState() {
+        val missing = REQUIRED_PERMISSIONS.filterNot(::granted)
+
+        if (missing.isEmpty()) {
+            binding.permissionPanel.visibility = View.GONE
+            binding.shutter.isEnabled = true
             startCamera()
             locationEngine.start()
+            return
+        }
+
+        if (!askedThisLaunch) {
+            askedThisLaunch = true
+            permissionLauncher.launch(missing.toTypedArray())
+            return
+        }
+
+        // Asked and still missing. Android only lets an app re-prompt while it
+        // may still show a rationale; past that the only route is settings, so
+        // the button has to say which of the two it is.
+        val canAskAgain = missing.any(::shouldShowRequestPermissionRationale)
+        binding.permissionPanel.visibility = View.VISIBLE
+        binding.shutter.isEnabled = false
+        binding.permissionMessage.setText(
+            when {
+                Manifest.permission.CAMERA in missing &&
+                    Manifest.permission.ACCESS_FINE_LOCATION in missing -> R.string.permission_need_both
+                Manifest.permission.CAMERA in missing -> R.string.permission_need_camera
+                else -> R.string.permission_need_location
+            }
+        )
+        binding.permissionAction.setText(
+            if (canAskAgain) R.string.permission_allow else R.string.permission_open_settings
+        )
+        binding.permissionAction.tag = canAskAgain
+    }
+
+    private fun onPermissionActionClicked() {
+        val canAskAgain = binding.permissionAction.tag as? Boolean ?: true
+        if (canAskAgain) {
+            permissionLauncher.launch(REQUIRED_PERMISSIONS.filterNot(::granted).toTypedArray())
         } else {
-            permissionLauncher.launch(needed.toTypedArray())
+            startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", packageName, null)
+                )
+            )
         }
     }
 
@@ -138,7 +196,12 @@ class MainActivity : AppCompatActivity() {
                 provider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview, capture)
                 imageCapture = capture
             }.onFailure {
-                toast(getString(R.string.camera_unavailable))
+                // A silent failure here is what a black preview looks like from
+                // the outside, so it is stated on screen rather than logged.
+                binding.permissionPanel.visibility = View.VISIBLE
+                binding.permissionMessage.text = getString(R.string.camera_unavailable)
+                binding.permissionAction.visibility = View.GONE
+                binding.shutter.isEnabled = false
             }
         }, ContextCompat.getMainExecutor(this))
     }

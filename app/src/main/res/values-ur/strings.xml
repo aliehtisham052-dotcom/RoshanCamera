@@ -34,4 +34,11 @@
     <string name="settings_business_hint">خالی چھوڑیں تو ایپ کا نام لگے گا</string>
     <string name="settings_language">زبان</string>
     <string name="save">محفوظ کریں</string>
+
+    <!-- Permissions -->
+    <string name="permission_need_both">تصویر لینے کے لیے کیمرہ، اور یہ ثابت کرنے کے لیے کہ تصویر کہاں لی گئی، مقام کی اجازت درکار ہے۔</string>
+    <string name="permission_need_camera">تصویر لینے کے لیے کیمرے کی اجازت درکار ہے۔</string>
+    <string name="permission_need_location">مقام کی اجازت درکار ہے، تاکہ ہر تصویر یہ ثابت کر سکے کہ وہ کہاں لی گئی۔</string>
+    <string name="permission_allow">اجازت دیں</string>
+    <string name="permission_open_settings">ترتیبات کھولیں</string>
 </resources>

@@ -45,4 +45,11 @@
     <string name="language_roman_urdu" translatable="false">Roman Urdu</string>
     <string name="language_urdu" translatable="false">اردو</string>
     <string name="save">Save</string>
+
+    <!-- Permissions -->
+    <string name="permission_need_both">Roshan Camera needs the camera to take the photo, and location to prove where it was taken.</string>
+    <string name="permission_need_camera">Roshan Camera needs camera access to take photos.</string>
+    <string name="permission_need_location">Roshan Camera needs location access, so every photo can prove where it was taken.</string>
+    <string name="permission_allow">Allow</string>
+    <string name="permission_open_settings">Open settings</string>
 </resources>

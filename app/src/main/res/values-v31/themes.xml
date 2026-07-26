@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+        The wordmark strip below the mark.
+
+        `windowSplashScreenBrandingImage` is a platform attribute added in
+        API 31, not one androidx.core:core-splashscreen backports — asking for
+        it in the base theme fails resource linking outright. It therefore
+        lives here, where the platform actually defines it; older devices get
+        the mark on the ink field, which is the same screen without the strip.
+    -->
+    <style name="Theme.RoshanCamera.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/brand_ink</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
+        <item name="android:windowSplashScreenBrandingImage">@drawable/ic_splash_wordmark</item>
+        <item name="postSplashScreenTheme">@style/Theme.RoshanCamera</item>
+    </style>
+
+</resources>

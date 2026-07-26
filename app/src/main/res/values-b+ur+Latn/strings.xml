@@ -34,4 +34,11 @@
     <string name="settings_business_hint">Khali chhorein to app ka naam lagega</string>
     <string name="settings_language">Zaban</string>
     <string name="save">Mehfooz karein</string>
+
+    <!-- Permissions -->
+    <string name="permission_need_both">Tasveer lene ke liye camera, aur yeh sabit karne ke liye ke tasveer kahan li gayi, location ki ijazat darkar hai.</string>
+    <string name="permission_need_camera">Tasveer lene ke liye camera ki ijazat darkar hai.</string>
+    <string name="permission_need_location">Location ki ijazat darkar hai, taake har tasveer sabit kar sake ke woh kahan li gayi.</string>
+    <string name="permission_allow">Ijazat dein</string>
+    <string name="permission_open_settings">Settings kholein</string>
 </resources>
