@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.exifinterface)
+    implementation(libs.androidx.splashscreen)
     implementation(libs.material)
     implementation(libs.androidx.recyclerview)
     implementation(libs.kotlinx.coroutines.android)

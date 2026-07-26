@@ -12,6 +12,7 @@ camerax = "1.4.2"
 playServicesLocation = "21.3.0"
 zxing = "3.5.3"
 exifinterface = "1.4.1"
+splashscreen = "1.0.1"
 coroutines = "1.10.2"
 junit = "4.13.2"
 
@@ -23,6 +24,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-exifinterface = { group = "androidx.exifinterface", name = "exifinterface", version.ref = "exifinterface" }
 androidx-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+androidx-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
