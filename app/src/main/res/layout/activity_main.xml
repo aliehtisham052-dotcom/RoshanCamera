@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/brand_ink"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/brandMark"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/ic_launcher_foreground"
+        app:layout_constraintBottom_toTopOf="@id/brandName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/brandName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:letterSpacing="0.08"
+        android:text="@string/app_name"
+        android:textColor="@color/brand_gold"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/brandMark" />
+
+    <TextView
+        android:id="@+id/brandTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:letterSpacing="0.12"
+        android:text="@string/brand_tagline"
+        android:textColor="@color/on_ink_muted"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/brandName" />
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/setup_placeholder"
+        android:textColor="@color/on_ink_muted"
+        android:textSize="13sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_max="320dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

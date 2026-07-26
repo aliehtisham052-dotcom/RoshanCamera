@@ -1,0 +1,35 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+output.json
+
+# Signing — NEVER commit these. This repo is public.
+*.jks
+*.keystore
+keystore.properties
+signing.properties
+
+# Secrets
+*.token
+.env
+google-services.json
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Roshan Camera brand palette -->
+    <color name="brand_gold">#D9A441</color>
+    <color name="brand_gold_dark">#A87A2B</color>
+    <color name="brand_ink">#0D0F14</color>
+    <color name="brand_ink_light">#1A1E27</color>
+    <color name="on_ink">#F2EDE4</color>
+    <color name="on_ink_muted">#9AA0AC</color>
+</resources>
