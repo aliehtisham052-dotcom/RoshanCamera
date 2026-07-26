@@ -43,4 +43,5 @@
     <string name="permission_open_settings">ترتیبات کھولیں</string>
     <string name="flash">فلیش</string>
     <string name="grid">گرڈ</string>
+    <string name="settings_camera">کیمرہ</string>
 </resources>

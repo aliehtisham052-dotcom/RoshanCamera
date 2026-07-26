@@ -15,6 +15,16 @@ class Settings(context: Context) {
         get() = prefs.getString(KEY_BUSINESS_NAME, null)
         set(value) = prefs.edit().putString(KEY_BUSINESS_NAME, value?.trim()).apply()
 
+    /** Torch on capture. Lives here, off the camera screen, by the owner's direction. */
+    var flashOn: Boolean
+        get() = prefs.getBoolean(KEY_FLASH, false)
+        set(value) = prefs.edit().putBoolean(KEY_FLASH, value).apply()
+
+    /** Rule-of-thirds guide over the viewfinder. */
+    var gridOn: Boolean
+        get() = prefs.getBoolean(KEY_GRID, false)
+        set(value) = prefs.edit().putBoolean(KEY_GRID, value).apply()
+
     /** BCP-47 tag chosen in the app, independent of the system language. */
     var languageTag: String?
         get() = prefs.getString(KEY_LANGUAGE, null)
@@ -24,5 +34,7 @@ class Settings(context: Context) {
         const val FILE = "roshan_camera_settings"
         const val KEY_BUSINESS_NAME = "business_name"
         const val KEY_LANGUAGE = "language_tag"
+        const val KEY_FLASH = "flash_on"
+        const val KEY_GRID = "grid_on"
     }
 }

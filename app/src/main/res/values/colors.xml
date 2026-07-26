@@ -1,26 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand -->
-    <color name="brand_gold">#D9A441</color>
-    <color name="brand_gold_dark">#A87A2B</color>
-    <color name="brand_ink">#0D0F14</color>
-    <color name="brand_ink_light">#1A1E27</color>
+    <!--
+        Colorful scheme in the family of the leading GPS camera apps, per the
+        owner's direction: sky blue, sun amber, earth green — not a single-tone
+        gold. Gold survives only inside the stamp card, whose theme the owner
+        will supply separately.
+    -->
+    <color name="primary_blue">#1E88E5</color>
+    <color name="primary_blue_deep">#0D47A1</color>
+    <color name="accent_amber">#FFB300</color>
+    <color name="accent_amber_deep">#FF8F00</color>
+    <color name="accent_green">#43A047</color>
 
     <!-- Camera chrome -->
-    <color name="chrome_bar">#161A21</color>
-    <color name="viewfinder_bg">#101318</color>
+    <color name="viewfinder_bg">#0B1526</color>
+    <color name="chrome_bar">#102A4C</color>
     <color name="scrim">#73000000</color>
     <color name="stamp_card">#9E000000</color>
+    <color name="brand_gold">#D9A441</color>
 
-    <!-- Icons: warm gold on the dark chrome, per the owner's direction.
-         Disabled/secondary state is a dimmed gold rather than gray, so the
-         palette stays in one family. -->
-    <color name="icon_active">#E8C97D</color>
-    <color name="icon_idle">#8A7442</color>
+    <!-- Function-coloured icons -->
+    <color name="icon_gallery">#64B5F6</color>
+    <color name="icon_verify">#81C784</color>
+    <color name="icon_settings">#FFD54F</color>
+
+    <!-- Light inner screens -->
+    <color name="screen_bg">#F5F8FC</color>
+    <color name="surface_tile">#E3EAF3</color>
+    <color name="ink_text">#14263F</color>
+    <color name="ink_muted">#5A6B82</color>
+
+    <!-- On-dark text -->
     <color name="on_ink">#F2EDE4</color>
     <color name="on_ink_muted">#9AA0AC</color>
 
-    <!-- Location status. Not color alone: the text says what is wrong. -->
+    <!-- Location status -->
     <color name="status_locked">#4ADE80</color>
     <color name="status_locked_bg">#EB0C3D2A</color>
     <color name="status_weak">#F0B849</color>

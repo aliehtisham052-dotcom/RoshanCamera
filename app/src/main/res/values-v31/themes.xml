@@ -11,7 +11,7 @@
         the mark on the ink field, which is the same screen without the strip.
     -->
     <style name="Theme.RoshanCamera.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/brand_ink</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
         <item name="android:windowSplashScreenBrandingImage">@drawable/ic_splash_wordmark</item>
         <item name="postSplashScreenTheme">@style/Theme.RoshanCamera</item>

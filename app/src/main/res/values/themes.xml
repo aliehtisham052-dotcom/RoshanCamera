@@ -2,14 +2,14 @@
 <resources>
 
     <style name="Theme.RoshanCamera" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/brand_gold</item>
-        <item name="colorOnPrimary">@color/brand_ink</item>
-        <item name="colorSecondary">@color/brand_gold_dark</item>
+        <item name="colorPrimary">@color/primary_blue</item>
+        <item name="colorOnPrimary">@android:color/white</item>
+        <item name="colorSecondary">@color/accent_amber</item>
         <!-- Honoured up to API 34. From API 35 the system draws edge to edge and
              ignores these; the screens pad themselves from window insets instead
              (see SystemBars.kt), so both eras look right. -->
-        <item name="android:statusBarColor">@color/brand_ink</item>
-        <item name="android:navigationBarColor">@color/brand_ink</item>
+        <item name="android:statusBarColor">@color/viewfinder_bg</item>
+        <item name="android:navigationBarColor">@color/viewfinder_bg</item>
     </style>
 
     <!--
@@ -18,11 +18,10 @@
         A splash screen that costs time would contradict the whole product: this
         one is drawn by the system during the process start that happens anyway,
         so it adds zero delay before the camera. The mark is the owner's own
-        artwork; the wordmark rides in the branding slot the platform provides
-        for exactly this (API 31+, ignored gracefully below that).
+        artwork.
     -->
     <style name="Theme.RoshanCamera.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/brand_ink</item>
+        <item name="windowSplashScreenBackground">@color/splash_bg</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_mark</item>
         <item name="postSplashScreenTheme">@style/Theme.RoshanCamera</item>
     </style>

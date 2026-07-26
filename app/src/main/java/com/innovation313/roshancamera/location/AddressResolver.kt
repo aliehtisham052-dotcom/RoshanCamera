@@ -42,6 +42,10 @@ class AddressResolver(context: Context) {
             runCatching {
                 val results = coder.getFromLocation(latitude, longitude, 1)
                 val first = results?.firstOrNull() ?: return@runCatching null
+                // The full formatted line carries the street — the "exact
+                // location" the stamp is judged by. The assembled parts remain
+                // only as a fallback for geocoders that return no address line.
+                first.getAddressLine(0)?.takeIf { it.isNotBlank() }?.let { return@runCatching it }
                 val parts = buildList {
                     first.subLocality?.let(::add)
                     first.locality?.let(::add)

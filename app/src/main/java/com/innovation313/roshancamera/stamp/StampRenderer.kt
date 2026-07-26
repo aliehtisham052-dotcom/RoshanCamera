@@ -47,7 +47,9 @@ object StampRenderer {
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         }
 
-        val lines = content.lines()
+        // Folded address lines arrive embedded with newlines; each drawn row
+        // must be its own entry or the fold prints as a tofu glyph.
+        val lines = content.lines().flatMap { it.split("\n") }
         val textBlockHeight = lines.size * (textSize + lineGap)
         val bandHeight = maxOf(qrSize + padding * 2, textBlockHeight + padding * 2)
         val bandTop = output.height - bandHeight

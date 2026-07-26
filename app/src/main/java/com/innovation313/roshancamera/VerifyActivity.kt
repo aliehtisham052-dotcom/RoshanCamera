@@ -57,7 +57,7 @@ class VerifyActivity : AppCompatActivity() {
             if (outcome == null) {
                 binding.result.text = getString(R.string.verify_unknown)
                 binding.result.setTextColor(
-                    ContextCompat.getColor(this@VerifyActivity, R.color.status_weak)
+                    ContextCompat.getColor(this@VerifyActivity, R.color.accent_amber_deep)
                 )
             } else {
                 binding.result.text = getString(
@@ -67,7 +67,7 @@ class VerifyActivity : AppCompatActivity() {
                     outcome.accuracyMetres
                 )
                 binding.result.setTextColor(
-                    ContextCompat.getColor(this@VerifyActivity, R.color.status_locked)
+                    ContextCompat.getColor(this@VerifyActivity, R.color.accent_green)
                 )
             }
         }

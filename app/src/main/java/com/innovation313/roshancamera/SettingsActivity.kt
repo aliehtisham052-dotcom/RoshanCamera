@@ -27,6 +27,10 @@ class SettingsActivity : AppCompatActivity() {
         binding.save.padForNavigationBar()
 
         binding.businessName.setText(settings.businessName.orEmpty())
+        binding.flashSwitch.isChecked = settings.flashOn
+        binding.gridSwitch.isChecked = settings.gridOn
+        binding.flashSwitch.setOnCheckedChangeListener { _, on -> settings.flashOn = on }
+        binding.gridSwitch.setOnCheckedChangeListener { _, on -> settings.gridOn = on }
         binding.back.setOnClickListener { finish() }
 
         binding.save.setOnClickListener {

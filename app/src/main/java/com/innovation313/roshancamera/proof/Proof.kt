@@ -7,22 +7,18 @@ import java.util.Locale
 /**
  * The proof layer.
  *
- * Two hashes are involved and they answer different questions:
+ * The QR on the stamp is a plain Google Maps URL: anyone who scans it — a
+ * customer, an insurer, a manager — lands on the exact spot with no app and no
+ * explanation needed. An earlier design encoded a custom pipe-delimited
+ * payload, and scanning it showed a string of numbers that meant nothing to
+ * the person checking; the owner rightly had it replaced.
  *
- *  - [hashOf] over the **original, unstamped** JPEG answers "is this the frame
- *    the sensor produced?" It goes inside the QR code.
- *  - The hash of the **finished, stamped** file answers "has the photo been
- *    edited since it was saved?" It cannot go inside the QR — writing it into
- *    the image would change the image and therefore the hash. It is recorded in
- *    the ledger instead, and [ProofLedger] is what a later verification checks
- *    against.
- *
- * Keeping both is what lets the app say something true. A stamp that only
- * *claims* a location proves nothing; anyone can paint text onto a picture.
+ * Tamper evidence does not ride in the QR (a URL cannot prove anything about
+ * the pixels around it). It lives in [ProofLedger]: the hash of the finished
+ * file is recorded at save time, and the verify screen re-hashes a chosen
+ * photo against that record.
  */
 object Proof {
-
-    const val PAYLOAD_VERSION = "RC1"
 
     fun hashOf(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
         .digest(bytes)
@@ -42,47 +38,13 @@ object Proof {
     }
 
     /**
-     * Builds the string encoded into the QR code.
-     *
-     * Kept deliberately short — every extra character raises the QR's density,
-     * and a dense code is harder to scan from a printed page or a phone screen
-     * held at arm's length, which is exactly how a proof photo gets checked.
-     *
-     * Format: `RC1|epochSeconds|lat|lon|accuracyMetres|first16OfSourceHash`
+     * The URL encoded into the stamp QR. Locale.US pins the decimal point: an
+     * Urdu or European locale would print commas and break the coordinates.
      */
-    fun payload(
-        epochSeconds: Long,
-        latitude: Double,
-        longitude: Double,
-        accuracyMetres: Int,
-        sourceHash: String
-    ): String = listOf(
-        PAYLOAD_VERSION,
-        epochSeconds.toString(),
-        String.format(Locale.US, "%.6f", latitude),
-        String.format(Locale.US, "%.6f", longitude),
-        accuracyMetres.toString(),
-        sourceHash.take(16)
-    ).joinToString("|")
-
-    /** Parses a payload produced by [payload]. Returns null if it is not ours. */
-    fun parse(payload: String): ProofPayload? {
-        val parts = payload.split("|")
-        if (parts.size != 6 || parts[0] != PAYLOAD_VERSION) return null
-        return ProofPayload(
-            epochSeconds = parts[1].toLongOrNull() ?: return null,
-            latitude = parts[2].toDoubleOrNull() ?: return null,
-            longitude = parts[3].toDoubleOrNull() ?: return null,
-            accuracyMetres = parts[4].toIntOrNull() ?: return null,
-            sourceHashPrefix = parts[5]
-        )
-    }
+    fun mapsUrl(latitude: Double, longitude: Double): String = String.format(
+        Locale.US,
+        "https://maps.google.com/?q=%.6f,%.6f",
+        latitude,
+        longitude
+    )
 }
-
-data class ProofPayload(
-    val epochSeconds: Long,
-    val latitude: Double,
-    val longitude: Double,
-    val accuracyMetres: Int,
-    val sourceHashPrefix: String
-)
