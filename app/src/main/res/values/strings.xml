@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Roshan Camera</string>
+    <!-- Brand name. Never translated, in any locale. -->
+    <string name="app_name" translatable="false">Roshan Camera</string>
     <string name="brand_tagline">Capture · Locate · Remember</string>
     <string name="setup_placeholder">Project skeleton ready. Camera, location and proof stamp come next.</string>
 </resources>

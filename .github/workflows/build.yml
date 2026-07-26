@@ -41,7 +41,39 @@ jobs:
         run: ./gradlew testDebugUnitTest --stacktrace
 
       - name: Lint
+        id: lint
+        continue-on-error: true
         run: ./gradlew lintDebug --stacktrace
+
+      - name: Annotate lint problems
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+
+          level = {"Fatal": "error", "Error": "error", "Warning": "warning"}
+          found = 0
+          for report in glob.glob("app/build/reports/lint-results-*.xml"):
+              for issue in ET.parse(report).getroot().findall("issue"):
+                  sev = issue.get("severity", "Warning")
+                  if sev not in level:
+                      continue
+                  loc = issue.find("location")
+                  path = loc.get("file", "") if loc is not None else ""
+                  line = loc.get("line", "1") if loc is not None else "1"
+                  path = path.split("/RoshanCamera/", 1)[-1]
+                  msg = (issue.get("message") or "").replace("\n", " ")
+                  print(f"::{level[sev]} file={path},line={line},title={issue.get('id')}::{msg}")
+                  found += 1
+          if not found:
+              print("::notice title=Lint::No lint problems reported.")
+          PY
+
+      - name: Fail the build if lint failed
+        if: steps.lint.outcome == 'failure'
+        run: |
+          echo "Lint reported problems — see the annotations above."
+          exit 1
 
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace

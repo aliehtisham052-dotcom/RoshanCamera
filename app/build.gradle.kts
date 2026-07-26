@@ -46,6 +46,16 @@ android {
         viewBinding = true
     }
 
+    lint {
+        abortOnError = true
+        warningsAsErrors = false
+        // CI reads this XML and turns every problem into a check annotation,
+        // so a red build always names the file and line rather than needing logs.
+        xmlReport = true
+        htmlReport = true
+        textReport = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
