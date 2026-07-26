@@ -7,53 +7,67 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
- * Turns coordinates into a human address, and caches the answer.
+ * Turns coordinates into the two lines the stamp needs — a bold region line
+ * ("Pasrur, Punjab, Pakistan") and the exact street line under it — matching
+ * the layout of the reference stamp the owner supplied.
  *
- * The cache is keyed on coordinates rounded to about a hundred metres, because
- * a person photographing twenty crates in one yard should cost one lookup, not
- * twenty. Reverse geocoding needs the network; when it is unavailable the
- * address falls back to plain coordinates rather than to a stale guess, because
+ * Cached on ~100 m buckets: photographing twenty crates in one yard costs one
+ * lookup, not twenty. Offline, both lines fall back to plain coordinates —
  * a wrong street name on a proof photo is worse than no street name.
  */
 class AddressResolver(context: Context) {
 
-    private val geocoder = if (Geocoder.isPresent()) Geocoder(context, Locale.getDefault()) else null
-    private val cache = LinkedHashMap<String, String>(CACHE_SIZE, 0.75f, true)
+    data class Resolved(val region: String, val exact: String)
 
-    suspend fun resolve(latitude: Double, longitude: Double): String {
+    private val geocoder = if (Geocoder.isPresent()) Geocoder(context, Locale.getDefault()) else null
+    private val cache = LinkedHashMap<String, Resolved>(CACHE_SIZE, 0.75f, true)
+
+    suspend fun resolve(latitude: Double, longitude: Double): Resolved {
         val key = cacheKey(latitude, longitude)
         synchronized(cache) { cache[key] }?.let { return it }
 
-        val address = lookup(latitude, longitude) ?: coordinates(latitude, longitude)
+        val fallback = coordinates(latitude, longitude)
+        val resolved = lookup(latitude, longitude) ?: Resolved(fallback, fallback)
         synchronized(cache) {
-            cache[key] = address
+            cache[key] = resolved
             while (cache.size > CACHE_SIZE) {
                 val oldest = cache.keys.firstOrNull() ?: break
                 cache.remove(oldest)
             }
         }
-        return address
+        return resolved
     }
 
     @Suppress("DEPRECATION")
-    private suspend fun lookup(latitude: Double, longitude: Double): String? =
+    private suspend fun lookup(latitude: Double, longitude: Double): Resolved? =
         withContext(Dispatchers.IO) {
             val coder = geocoder ?: return@withContext null
             runCatching {
-                val results = coder.getFromLocation(latitude, longitude, 1)
-                val first = results?.firstOrNull() ?: return@runCatching null
-                // The full formatted line carries the street — the "exact
-                // location" the stamp is judged by. The assembled parts remain
-                // only as a fallback for geocoders that return no address line.
-                first.getAddressLine(0)?.takeIf { it.isNotBlank() }?.let { return@runCatching it }
-                val parts = buildList {
-                    first.subLocality?.let(::add)
+                val first = coder.getFromLocation(latitude, longitude, 1)
+                    ?.firstOrNull() ?: return@runCatching null
+
+                val region = buildList {
                     first.locality?.let(::add)
                     first.subAdminArea?.takeIf { it != first.locality }?.let(::add)
                     first.adminArea?.let(::add)
                     first.countryName?.let(::add)
-                }
-                parts.distinct().joinToString(", ").ifBlank { null }
+                }.distinct().joinToString(", ")
+
+                // The full formatted line carries the street — the "exact
+                // location" the stamp is judged by.
+                val exact = first.getAddressLine(0)
+                    ?.takeIf { it.isNotBlank() }
+                    ?: buildList {
+                        first.thoroughfare?.let(::add)
+                        first.subLocality?.let(::add)
+                        first.locality?.let(::add)
+                    }.distinct().joinToString(", ")
+
+                if (region.isBlank() && exact.isBlank()) null
+                else Resolved(
+                    region = region.ifBlank { exact },
+                    exact = exact.ifBlank { region }
+                )
             }.getOrNull()
         }
 

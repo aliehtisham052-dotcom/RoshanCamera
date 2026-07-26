@@ -31,6 +31,8 @@ import com.innovation313.roshancamera.location.LocationEngine
 import com.innovation313.roshancamera.location.LocationState
 import com.innovation313.roshancamera.location.StaleReason
 import com.innovation313.roshancamera.location.WeatherProvider
+import com.innovation313.roshancamera.location.MapTileProvider
+import com.innovation313.roshancamera.stamp.MapTileBitmap
 import com.innovation313.roshancamera.proof.Proof
 import com.innovation313.roshancamera.proof.ProofLedger
 import com.innovation313.roshancamera.proof.ProofRecord
@@ -67,6 +69,7 @@ class MainActivity : AppCompatActivity() {
     private val ledger by lazy { ProofLedger(this) }
     private val settings by lazy { Settings(this) }
     private val weather by lazy { WeatherProvider() }
+    private val mapTiles by lazy { MapTileProvider() }
     private var lastTempC: Int? = null
 
     private var imageCapture: ImageCapture? = null
@@ -103,8 +106,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.permissionAction.setOnClickListener { onPermissionActionClicked() }
-        binding.stampHeading.text = settings.businessName?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.app_name)
         startStampClock()
 
         // TextureView rather than SurfaceView. Several OEM builds never deliver
@@ -118,11 +119,8 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         // Settings sits above this screen, so everything it controls is
-        // re-read here: heading, flash, and the grid. The camera screen itself
-        // carries no toggles by the owner's direction — nothing between the
-        // person and the shutter.
-        binding.stampHeading.text = settings.businessName?.takeIf { it.isNotBlank() }
-            ?: getString(R.string.app_name)
+        // re-read here. The camera screen itself carries no toggles by the
+        // owner's direction — nothing between the person and the shutter.
         flashOn = settings.flashOn
         imageCapture?.flashMode =
             if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
@@ -275,10 +273,17 @@ class MainActivity : AppCompatActivity() {
         if (bucket != lastResolvedBucket) {
             lastResolvedBucket = bucket
             lifecycleScope.launch {
-                binding.stampAddress.text = addressResolver.resolve(fix.latitude, fix.longitude)
+                val resolved = addressResolver.resolve(fix.latitude, fix.longitude)
+                binding.stampRegion.text = resolved.region
+                binding.stampAddress.text = resolved.exact
             }
             lifecycleScope.launch {
                 lastTempC = weather.currentTempC(fix.latitude, fix.longitude)
+            }
+            lifecycleScope.launch {
+                mapTiles.tileFor(fix.latitude, fix.longitude)?.let {
+                    binding.stampMap.setImageBitmap(it.bitmap)
+                }
             }
         }
     }
@@ -359,19 +364,23 @@ class MainActivity : AppCompatActivity() {
             runCatching {
                 withContext(Dispatchers.Default) {
                     val sourceHash = Proof.hashOf(jpegBytes)
-                    val address = addressResolver.resolve(latitude, longitude)
+                    val resolved = addressResolver.resolve(latitude, longitude)
                     val tempC = weather.currentTempC(latitude, longitude)
+                    val tile = mapTiles.tileFor(latitude, longitude)
 
                     val content = StampContent(
-                        addressLine = wrapForStamp(address),
-                        coordinatesLine = addressResolver.coordinates(latitude, longitude),
+                        regionLine = resolved.region,
+                        exactAddress = resolved.exact,
                         dateTimeLine = buildString {
                             append(STAMP_TIME.format(takenAt))
-                            if (tempC != null) append("  ·  ").append(tempC).append("°C")
+                            append("  ·  ")
+                            append(addressResolver.coordinates(latitude, longitude))
+                            append(" ±").append(accuracy).append(" m")
                         },
-                        accuracyLine = getString(R.string.stamp_accuracy, accuracy),
+                        temperature = tempC?.let { "$it°C" },
                         businessName = settings.businessName,
-                        qrPayload = Proof.mapsUrl(latitude, longitude)
+                        qrPayload = Proof.mapsUrl(latitude, longitude),
+                        mapTile = tile?.let { MapTileBitmap(it.bitmap, it.pinX, it.pinY) }
                     )
 
                     val frame = jpegBytes.toBitmap(rotationDegrees)
@@ -387,7 +396,7 @@ class MainActivity : AppCompatActivity() {
                             latitude = latitude,
                             longitude = longitude,
                             accuracyMetres = accuracy,
-                            address = address,
+                            address = resolved.exact,
                             sourceHash = sourceHash,
                             stampedHash = Proof.hashOf(saved.bytes),
                             fileName = saved.fileName
@@ -401,18 +410,6 @@ class MainActivity : AppCompatActivity() {
                 toast(getString(R.string.save_failed))
             }
         }
-    }
-
-    /**
-     * Exact addresses run long. Folded at a comma near the midpoint so the
-     * stamp shows the full street line without one enormous row of type;
-     * StampRenderer draws each folded line separately.
-     */
-    private fun wrapForStamp(address: String): String {
-        if (address.length <= WRAP_AT) return address
-        val cut = address.lastIndexOf(", ", WRAP_AT)
-        if (cut <= 0) return address
-        return address.substring(0, cut + 1).trimEnd() + "\n" + address.substring(cut + 2)
     }
 
     private fun ImageProxy.toJpegBytes(): ByteArray {
@@ -450,7 +447,6 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-        val STAMP_TIME = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
-        const val WRAP_AT = 44
+        val STAMP_TIME = SimpleDateFormat("EEE, dd MMM yyyy, hh:mm a", Locale.getDefault())
     }
 }

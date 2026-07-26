@@ -6,28 +6,36 @@ import org.junit.Test
 
 class StampContentTest {
 
-    private fun content(businessName: String?) = StampContent(
-        addressLine = "Pasrur, Sialkot",
-        coordinatesLine = "32.26702, 74.67831",
-        dateTimeLine = "26 Jul 2026, 09:14 AM",
-        accuracyLine = "Accuracy ±8 m",
-        businessName = businessName,
-        qrPayload = "RC1|1|2|3|4|5"
+    private fun content(exact: String) = StampContent(
+        regionLine = "Pasrur, Punjab, Pakistan",
+        exactAddress = exact,
+        dateTimeLine = "Sun, 26 Jul 2026, 09:14 AM · 32.26702, 74.67831 ±8 m",
+        temperature = "31°C",
+        businessName = null,
+        qrPayload = "https://maps.google.com/?q=32.267020,74.678310"
     )
 
     @Test
-    fun `business name leads the stamp when set`() {
-        assertEquals("Innovation-313", content("Innovation-313").lines().first())
+    fun `a short exact address stays on one line`() {
+        assertEquals(listOf("Mall Road, Pasrur"), content("Mall Road, Pasrur").exactLines())
     }
 
     @Test
-    fun `a blank business name falls back to the app name`() {
-        assertEquals("Roshan Camera", content("   ").lines().first())
-        assertEquals("Roshan Camera", content(null).lines().first())
+    fun `a long exact address folds near a comma`() {
+        val lines = content(
+            "Street 4, Mohalla Islamabad, Pasrur, Sialkot District, Punjab, Pakistan"
+        ).exactLines()
+        assertEquals(2, lines.size)
+        // Folded at a comma, nothing lost.
+        assertEquals(
+            "Street 4, Mohalla Islamabad, Pasrur, Sialkot District, Punjab, Pakistan",
+            lines[0].trimEnd(',') + ", " + lines[1]
+        )
     }
 
     @Test
-    fun `every stamp carries all five lines`() {
-        assertEquals(5, content("Innovation-313").lines().size)
+    fun `an unbreakable long line is left whole rather than mangled`() {
+        val single = "x".repeat(60)
+        assertEquals(listOf(single), content(single).exactLines())
     }
 }

@@ -61,23 +61,33 @@
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:background="@drawable/bg_stamp_card"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="10dp"
         app:layout_constraintBottom_toBottomOf="@id/preview"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <ImageView
+            android:id="@+id/stampMap"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@color/chrome_bar"
+            android:contentDescription="@string/gallery"
+            android:scaleType="centerCrop" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/stampHeading"
+                android:id="@+id/stampRegion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/brand_gold"
+                android:textColor="@android:color/white"
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
@@ -85,7 +95,7 @@
                 android:id="@+id/stampAddress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:textColor="@color/on_ink"
                 android:textSize="11sp" />
 
@@ -94,22 +104,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/on_ink_muted"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/stampTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/on_ink_muted"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
 
         </LinearLayout>
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="8dp"
             android:contentDescription="@string/verify"
             android:src="@drawable/ic_qr"
             app:tint="@color/on_ink" />
