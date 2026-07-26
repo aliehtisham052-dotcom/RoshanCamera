@@ -36,6 +36,9 @@ class GalleryActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityGalleryBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setUpSystemBars()
+        binding.back.padForStatusBar()
+        binding.grid.padForNavigationBar()
 
         adapter = PhotoAdapter(lifecycleScope, thumbnails, ::share)
         binding.grid.layoutManager = GridLayoutManager(this, SPAN_COUNT)

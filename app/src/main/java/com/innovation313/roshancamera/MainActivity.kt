@@ -71,6 +71,9 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setUpSystemBars()
+        binding.locationStatus.padForStatusBar()
+        binding.controls.padForNavigationBar()
 
         binding.shutter.setOnClickListener { capture() }
         binding.openGallery.setOnClickListener {
@@ -222,7 +225,7 @@ class MainActivity : AppCompatActivity() {
 
                     val frame = jpegBytes.toBitmap(rotationDegrees)
                     val stamped = StampRenderer.render(frame, content)
-                    frame.recycle()
+                    if (stamped !== frame) frame.recycle()
 
                     val saved = photoStore.save(stamped)
                     stamped.recycle()
@@ -253,14 +256,24 @@ class MainActivity : AppCompatActivity() {
         return ByteArray(buffer.remaining()).also { buffer.get(it) }
     }
 
+    /**
+     * Decodes straight into a mutable bitmap so the stamp can be drawn in place
+     * rather than onto a second full-size copy — see StampRenderer.render.
+     */
     private fun ByteArray.toBitmap(rotationDegrees: Int): Bitmap {
-        val decoded = BitmapFactory.decodeByteArray(this, 0, size)
+        val options = BitmapFactory.Options().apply {
+            inMutable = true
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        val decoded = BitmapFactory.decodeByteArray(this, 0, size, options)
+            ?: error("Captured frame could not be decoded")
         if (rotationDegrees == 0) return decoded
+
         val matrix = Matrix().apply { postRotate(rotationDegrees.toFloat()) }
         val rotated = Bitmap.createBitmap(
             decoded, 0, 0, decoded.width, decoded.height, matrix, true
         )
-        if (rotated != decoded) decoded.recycle()
+        if (rotated !== decoded) decoded.recycle()
         return rotated
     }
 

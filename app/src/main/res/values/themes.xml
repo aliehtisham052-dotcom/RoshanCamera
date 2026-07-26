@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 
     <style name="Theme.RoshanCamera" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/brand_gold</item>
         <item name="colorOnPrimary">@color/brand_ink</item>
         <item name="colorSecondary">@color/brand_gold_dark</item>
+        <!-- Honoured up to API 34. From API 35 the system draws edge to edge and
+             ignores these; the screens pad themselves from window insets instead
+             (see SystemBars.kt), so both eras look right. -->
         <item name="android:statusBarColor">@color/brand_ink</item>
         <item name="android:navigationBarColor">@color/brand_ink</item>
-        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
     </style>
 
 </resources>

@@ -22,6 +22,9 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setUpSystemBars()
+        binding.back.padForStatusBar()
+        binding.save.padForNavigationBar()
 
         binding.businessName.setText(settings.businessName.orEmpty())
         binding.back.setOnClickListener { finish() }

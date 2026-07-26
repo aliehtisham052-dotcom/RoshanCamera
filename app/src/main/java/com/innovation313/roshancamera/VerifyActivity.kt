@@ -36,6 +36,9 @@ class VerifyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityVerifyBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        setUpSystemBars()
+        binding.back.padForStatusBar()
+        binding.result.padForNavigationBar()
 
         binding.pick.setOnClickListener { picker.launch("image/*") }
         binding.back.setOnClickListener { finish() }

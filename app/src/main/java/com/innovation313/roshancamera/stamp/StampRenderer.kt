@@ -18,8 +18,14 @@ import kotlin.math.roundToInt
  */
 object StampRenderer {
 
+    /**
+     * Draws onto [source] directly when it is mutable, and only copies when it
+     * is not. A twelve-megapixel frame is about 48 MB in memory; an
+     * unconditional copy would put two of them on the heap at once, on phones
+     * that may only have a couple of hundred megabytes to give an app.
+     */
     fun render(source: Bitmap, content: StampContent): Bitmap {
-        val output = source.copy(Bitmap.Config.ARGB_8888, true)
+        val output = if (source.isMutable) source else source.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(output)
 
         val width = output.width
