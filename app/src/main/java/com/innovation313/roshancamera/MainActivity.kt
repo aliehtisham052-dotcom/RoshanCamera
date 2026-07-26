@@ -20,6 +20,8 @@ import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -34,7 +36,9 @@ import com.innovation313.roshancamera.proof.ProofRecord
 import com.innovation313.roshancamera.stamp.StampContent
 import com.innovation313.roshancamera.stamp.StampRenderer
 import com.innovation313.roshancamera.storage.PhotoStore
+import com.innovation313.roshancamera.storage.ThumbnailLoader
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,6 +68,8 @@ class MainActivity : AppCompatActivity() {
 
     private var imageCapture: ImageCapture? = null
     private var latestState: LocationState = LocationState.Searching
+    private var flashOn = false
+    private var lastResolvedBucket: String? = null
 
     private var askedThisLaunch = false
 
@@ -94,6 +100,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.permissionAction.setOnClickListener { onPermissionActionClicked() }
+        binding.toggleFlash.setOnClickListener { toggleFlash() }
+        binding.toggleGrid.setOnClickListener {
+            binding.gridOverlay.visibility =
+                if (binding.gridOverlay.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+        binding.stampHeading.text = settings.businessName?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.app_name)
+        startStampClock()
 
         // TextureView rather than SurfaceView. Several OEM builds never deliver
         // a first frame to a SurfaceView-backed preview, and the symptom is a
@@ -103,11 +117,19 @@ class MainActivity : AppCompatActivity() {
         observeLocation()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // The business name can change in Settings while this activity is below it.
+        binding.stampHeading.text = settings.businessName?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.app_name)
+    }
+
     override fun onStart() {
         super.onStart()
         // Re-checked on every entry, so returning from the system settings
         // screen with a permission newly granted just works.
         applyPermissionState()
+        loadGalleryThumb()
     }
 
     override fun onStop() {
@@ -189,6 +211,7 @@ class MainActivity : AppCompatActivity() {
             // reduction for a shutter that fires when it is pressed.
             val capture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setFlashMode(if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF)
                 .build()
 
             runCatching {
@@ -211,12 +234,73 @@ class MainActivity : AppCompatActivity() {
             locationEngine.state.collectLatest { state ->
                 latestState = state
                 binding.locationStatus.text = describe(state)
-                binding.locationStatus.setTextColor(
+                val locked = state.isLocked
+                binding.gpsChip.setBackgroundResource(
+                    if (locked) R.drawable.bg_gps_chip_locked else R.drawable.bg_gps_chip_weak
+                )
+                binding.gpsDot.background.setTint(
                     ContextCompat.getColor(
                         this@MainActivity,
-                        if (state.isLocked) R.color.status_locked else R.color.status_weak
+                        if (locked) R.color.status_locked else R.color.status_weak
                     )
                 )
+                updateStampPreview(state)
+            }
+        }
+    }
+
+    /**
+     * The live stamp card mirrors what will be drawn on the next photo — the
+     * single most-requested convenience in competitor reviews. The address is
+     * re-resolved only when the ~100 m bucket changes, so walking around a
+     * yard does not fire a geocoder call per second.
+     */
+    private fun updateStampPreview(state: LocationState) {
+        val fix = state.fixOrNull
+        if (fix == null) {
+            binding.stampAddress.text = getString(R.string.gps_searching)
+            binding.stampCoords.text = ""
+            return
+        }
+        binding.stampCoords.text = buildString {
+            append(addressResolver.coordinates(fix.latitude, fix.longitude))
+            if (fix.hasAccuracy()) append("  ·  ±").append(fix.accuracy.roundToInt()).append(" m")
+        }
+        val bucket = String.format(Locale.US, "%.3f/%.3f", fix.latitude, fix.longitude)
+        if (bucket != lastResolvedBucket) {
+            lastResolvedBucket = bucket
+            lifecycleScope.launch {
+                binding.stampAddress.text = addressResolver.resolve(fix.latitude, fix.longitude)
+            }
+        }
+    }
+
+    private fun startStampClock() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                while (true) {
+                    binding.stampTime.text = STAMP_TIME.format(Date())
+                    delay(1_000)
+                }
+            }
+        }
+    }
+
+    private fun toggleFlash() {
+        flashOn = !flashOn
+        binding.toggleFlash.setImageResource(
+            if (flashOn) R.drawable.ic_flash_on else R.drawable.ic_flash_off
+        )
+        imageCapture?.flashMode =
+            if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+    }
+
+    private fun loadGalleryThumb() {
+        lifecycleScope.launch {
+            val latest = photoStore.list(limit = 1).firstOrNull() ?: return@launch
+            ThumbnailLoader(this@MainActivity).load(latest, 96)?.let {
+                binding.openGallery.setImageBitmap(it)
+                binding.openGallery.imageTintList = null
             }
         }
     }
@@ -312,6 +396,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }.onSuccess {
                 toast(getString(R.string.photo_saved))
+                loadGalleryThumb()
             }.onFailure {
                 toast(getString(R.string.save_failed))
             }

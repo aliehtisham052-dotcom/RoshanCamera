@@ -41,4 +41,6 @@
     <string name="permission_need_location">مقام کی اجازت درکار ہے، تاکہ ہر تصویر یہ ثابت کر سکے کہ وہ کہاں لی گئی۔</string>
     <string name="permission_allow">اجازت دیں</string>
     <string name="permission_open_settings">ترتیبات کھولیں</string>
+    <string name="flash">فلیش</string>
+    <string name="grid">گرڈ</string>
 </resources>
