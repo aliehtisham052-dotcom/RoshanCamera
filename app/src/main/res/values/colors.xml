@@ -7,4 +7,10 @@
     <color name="brand_ink_light">#1A1E27</color>
     <color name="on_ink">#F2EDE4</color>
     <color name="on_ink_muted">#9AA0AC</color>
+    <color name="scrim">#B30D0F14</color>
+
+    <!-- Location status. Deliberately not red/green alone: the text says what
+         is wrong, so the colour is a second cue rather than the only one. -->
+    <color name="status_locked">#7BD88F</color>
+    <color name="status_weak">#F0B849</color>
 </resources>

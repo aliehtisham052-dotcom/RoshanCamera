@@ -72,7 +72,7 @@ Requires JDK 17 and the Android SDK (compileSdk 35).
 ./gradlew lintDebug          # lint
 ```
 
-If `gradlew` is missing, generate the wrapper once with `gradle wrapper --gradle-version 8.9`.
+If `gradlew` is missing, generate the wrapper once with `gradle wrapper --gradle-version 8.14.3`.
 
 CI runs tests, lint and a debug build on every push to `main`, and reports the
 resulting APK size.

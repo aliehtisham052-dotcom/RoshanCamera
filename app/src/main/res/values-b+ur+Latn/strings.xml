@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="brand_tagline">Tasveer · Maqam · Saboot</string>
+
+    <string name="take_photo">Tasveer lein</string>
+    <string name="gallery">Gallery</string>
+    <string name="verify">Tasdeeq</string>
+    <string name="settings">Settings</string>
+    <string name="back">Wapas</string>
+    <string name="photo">Tasveer</string>
+
+    <string name="gps_searching">Aap ka maqam talash kiya ja raha hai…</string>
+    <string name="gps_locked">Maqam confirm ho gaya · ±%1$d meter</string>
+    <string name="gps_weak_accuracy">Signal kamzor hai · ±%1$d meter — khuli jagah par jayein</string>
+    <string name="gps_stale">Maqam purana hai — naye signal ka intezar hai</string>
+
+    <string name="camera_not_ready">Camera abhi khul raha hai</string>
+    <string name="camera_unavailable">Camera nahi khul saka</string>
+    <string name="capture_failed">Tasveer nahi li ja saki</string>
+    <string name="photo_saved">Saboot ki mohar ke saath mehfooz ho gayi</string>
+    <string name="save_failed">Tasveer mehfooz nahi ho saki</string>
+    <string name="stamp_accuracy">Durustagi ±%1$d meter · Roshan Camera se tasdeeq shuda</string>
+
+    <string name="gallery_empty">Abhi koi tasveer nahi. Mohar lagi tasveerein yahan nazar aayengi.</string>
+    <string name="share_photo">Tasveer bhejein</string>
+
+    <string name="verify_intro">Tasveer muntakhib karein taake dekha ja sake ke mehfooz hone ke baad us mein tabdeeli hui ya nahi.</string>
+    <string name="verify_pick">Tasveer muntakhib karein</string>
+    <string name="verify_working">Janch ho rahi hai…</string>
+    <string name="verify_match">Koi tabdeeli nahi.\n\n%1$s\n%2$s\nDurustagi ±%3$d meter</string>
+    <string name="verify_unknown">Koi record nahi mila. Yeh tasveer ya to is app se nahi li gayi, ya mehfooz hone ke baad is mein tabdeeli ki gayi hai.</string>
+
+    <string name="settings_business_name">Mohar par karobar ka naam</string>
+    <string name="settings_business_hint">Khali chhorein to app ka naam lagega</string>
+    <string name="settings_language">Zaban</string>
+    <string name="save">Mehfooz karein</string>
+</resources>

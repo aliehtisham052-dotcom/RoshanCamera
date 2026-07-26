@@ -3,5 +3,46 @@
     <!-- Brand name. Never translated, in any locale. -->
     <string name="app_name" translatable="false">Roshan Camera</string>
     <string name="brand_tagline">Capture · Locate · Remember</string>
-    <string name="setup_placeholder">Project skeleton ready. Camera, location and proof stamp come next.</string>
+
+    <!-- Camera screen -->
+    <string name="take_photo">Take photo</string>
+    <string name="gallery">Gallery</string>
+    <string name="verify">Verify</string>
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="photo">Photo</string>
+
+    <!-- Location status -->
+    <string name="gps_searching">Finding your location…</string>
+    <string name="gps_locked">Location confirmed · ±%1$d m</string>
+    <string name="gps_weak_accuracy">Signal weak · ±%1$d m — move to open sky</string>
+    <string name="gps_stale">Location is out of date — waiting for a fresh fix</string>
+
+    <!-- Capture -->
+    <string name="camera_not_ready">Camera is still starting</string>
+    <string name="camera_unavailable">Camera could not be opened</string>
+    <string name="capture_failed">Photo could not be taken</string>
+    <string name="photo_saved">Saved with proof stamp</string>
+    <string name="save_failed">Photo could not be saved</string>
+    <string name="stamp_accuracy">Accuracy ±%1$d m · verified by Roshan Camera</string>
+
+    <!-- Gallery -->
+    <string name="gallery_empty">No photos yet. Your stamped photos will appear here.</string>
+    <string name="share_photo">Share photo</string>
+
+    <!-- Verify -->
+    <string name="verify_intro">Pick a photo to check whether it has been changed since it was saved.</string>
+    <string name="verify_pick">Choose a photo</string>
+    <string name="verify_working">Checking…</string>
+    <string name="verify_match">Unchanged.\n\n%1$s\n%2$s\nAccuracy ±%3$d m</string>
+    <string name="verify_unknown">No matching record. This photo was either not taken with this app, or it has been edited since it was saved.</string>
+
+    <!-- Settings -->
+    <string name="settings_business_name">Business name on stamp</string>
+    <string name="settings_business_hint">Leave blank to use the app name</string>
+    <string name="settings_language">Language</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_roman_urdu" translatable="false">Roman Urdu</string>
+    <string name="language_urdu" translatable="false">اردو</string>
+    <string name="save">Save</string>
 </resources>

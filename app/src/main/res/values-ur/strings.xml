@@ -1,5 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="brand_tagline">تصویر · مقام · ثبوت</string>
-    <string name="setup_placeholder">پروجیکٹ کا ڈھانچہ تیار ہے۔ کیمرہ، مقام اور ثبوت کی مہر اگلے مرحلے میں۔</string>
+
+    <string name="take_photo">تصویر لیں</string>
+    <string name="gallery">گیلری</string>
+    <string name="verify">تصدیق</string>
+    <string name="settings">ترتیبات</string>
+    <string name="back">واپس</string>
+    <string name="photo">تصویر</string>
+
+    <string name="gps_searching">آپ کا مقام تلاش کیا جا رہا ہے…</string>
+    <string name="gps_locked">مقام کی تصدیق ہو گئی · ±%1$d میٹر</string>
+    <string name="gps_weak_accuracy">سگنل کمزور ہے · ±%1$d میٹر — کھلی جگہ پر جائیں</string>
+    <string name="gps_stale">مقام پرانا ہے — نئے سگنل کا انتظار ہے</string>
+
+    <string name="camera_not_ready">کیمرہ ابھی کھل رہا ہے</string>
+    <string name="camera_unavailable">کیمرہ نہیں کھل سکا</string>
+    <string name="capture_failed">تصویر نہیں لی جا سکی</string>
+    <string name="photo_saved">ثبوت کی مہر کے ساتھ محفوظ ہو گئی</string>
+    <string name="save_failed">تصویر محفوظ نہیں ہو سکی</string>
+    <string name="stamp_accuracy">درستگی ±%1$d میٹر · روشن کیمرہ سے تصدیق شدہ</string>
+
+    <string name="gallery_empty">ابھی کوئی تصویر نہیں۔ مہر لگی تصاویر یہاں نظر آئیں گی۔</string>
+    <string name="share_photo">تصویر بھیجیں</string>
+
+    <string name="verify_intro">تصویر منتخب کریں تاکہ دیکھا جا سکے کہ محفوظ ہونے کے بعد اس میں تبدیلی ہوئی یا نہیں۔</string>
+    <string name="verify_pick">تصویر منتخب کریں</string>
+    <string name="verify_working">جانچ ہو رہی ہے…</string>
+    <string name="verify_match">کوئی تبدیلی نہیں۔\n\n%1$s\n%2$s\nدرستگی ±%3$d میٹر</string>
+    <string name="verify_unknown">کوئی ریکارڈ نہیں ملا۔ یہ تصویر یا تو اس ایپ سے نہیں لی گئی، یا محفوظ ہونے کے بعد اس میں تبدیلی کی گئی ہے۔</string>
+
+    <string name="settings_business_name">مہر پر کاروبار کا نام</string>
+    <string name="settings_business_hint">خالی چھوڑیں تو ایپ کا نام لگے گا</string>
+    <string name="settings_language">زبان</string>
+    <string name="save">محفوظ کریں</string>
 </resources>
