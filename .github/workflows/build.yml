@@ -78,11 +78,17 @@ jobs:
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --stacktrace
 
-      - name: Report APK size
+      - name: Assemble release APK (unsigned, for size only)
+        run: ./gradlew assembleRelease --stacktrace
+
+      - name: Report APK sizes
         run: |
-          APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
-          SIZE=$(du -h "$APK" | cut -f1)
-          echo "::notice title=APK size::$APK is $SIZE"
+          DEBUG=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
+          RELEASE=$(find app/build/outputs/apk/release -name '*.apk' | head -1)
+          echo "::notice title=Debug APK size::$(du -h "$DEBUG" | cut -f1)"
+          if [ -n "$RELEASE" ]; then
+            echo "::notice title=Release APK size (the number the store listing claims)::$(du -h "$RELEASE" | cut -f1)"
+          fi
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

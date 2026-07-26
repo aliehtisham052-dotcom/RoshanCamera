@@ -16,7 +16,15 @@ it is the wrong change — no matter how useful the feature sounds.
 ```
 app/src/main/java/com/innovation313/roshancamera/
   RoshanCameraApp.kt   Application. Deliberately does no start-up work.
-  MainActivity.kt      Placeholder launch screen for now.
+  MainActivity.kt      Camera screen. Shutter never waits on processing.
+  GalleryActivity.kt   MediaStore-backed grid, thumbnails only.
+  VerifyActivity.kt    Re-hashes a chosen photo against the ledger.
+  SettingsActivity.kt  Business name and per-app language.
+  Settings.kt          SharedPreferences wrapper.
+  location/            LocationEngine (lock gating), AddressResolver (cached)
+  proof/               Proof (hashing, QR payload), QrEncoder, ProofLedger
+  stamp/               StampRenderer, StampContent
+  storage/             PhotoStore (MediaStore), ThumbnailLoader
 app/src/main/res/
   values/              colours, strings (en), theme
   values-ur/           Urdu strings
@@ -28,7 +36,8 @@ gradle/libs.versions.toml   single source of truth for versions
 
 - `applicationId` is `com.innovation313.roshancamera` and is pinned by a unit
   test. Changing it after release breaks updates for every installed user.
-- minSdk 24, targetSdk 35, compileSdk 35, JVM target 17.
+- minSdk 24, targetSdk 36, compileSdk 36, JVM target 17. API 36 is not
+  optional: Google Play blocks new apps and updates below it from 31 Aug 2026.
 - View binding is on; no Compose. Views keep the APK small, which is a stated
   product goal, not a style preference.
 
@@ -62,6 +71,23 @@ Guessing at causes wastes a cycle; the annotation usually names the file and lin
 - No background location. Location is read while the camera screen is in the
   foreground, and not otherwise.
 - Nothing is uploaded anywhere. All photos and data stay on the device.
+
+## Decisions worth not relitigating
+
+- **No Room.** The proof ledger is a flat JSON file in private storage. Row
+  count is bounded by photos taken, it is read only on the verify screen, and
+  Room's compiler plugin costs roughly a megabyte against an eight-megabyte
+  budget. Revisit only if the data model grows relations.
+- **Two hashes, not one.** The QR carries the hash of the *original* frame; the
+  ledger stores the hash of the *finished file*. A hash of the stamped image
+  cannot be written into that image without changing it. Verification checks
+  the ledger, not the QR.
+- **`zxing:core` only.** `zxing-android-embedded` would drag in an activity,
+  camera plumbing and resources the app already has.
+- **Views, not Compose.** Purely a size decision.
+- **Gallery loads thumbnails only.** A full 12 MP decode is ~48 MB of heap; a
+  three-column grid of those will stutter and then crash on the mid-range
+  phones this app is aimed at.
 
 ## Size budget
 

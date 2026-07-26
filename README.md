@@ -43,19 +43,19 @@ inspection · insurance claims · field attendance.
 
 ## Project status
 
-Early setup. The project skeleton builds and installs; the camera surface,
-location engine and stamp pipeline are being added step by step.
-
-Roadmap to v1.0:
+v1.0 feature-complete and building. Not yet tested on a real device, and not
+yet published.
 
 - [x] Project skeleton, CI, branding
-- [ ] CameraX capture surface (instant shutter)
-- [ ] Location engine — pre-warmed `FusedLocationProvider`, lock confirmation, live accuracy
-- [ ] Offline reverse-geocoder with cache
-- [ ] Canvas stamp renderer on a background thread
-- [ ] SHA-256 hash + QR proof layer
-- [ ] Gallery, share, MediaStore + Room
-- [ ] Localisation: English, Roman Urdu, Urdu
+- [x] CameraX capture surface (instant shutter)
+- [x] Location engine — pre-warmed `FusedLocationProvider`, lock confirmation, live accuracy
+- [x] Reverse-geocoder with cache, falling back to coordinates when offline
+- [x] Canvas stamp renderer on a background thread
+- [x] SHA-256 hash + QR proof layer, with a verify screen
+- [x] Gallery (MediaStore, thumbnailed), share, business name on stamp
+- [x] Localisation: English, Roman Urdu, Urdu
+- [ ] Real-device testing
+- [ ] Play Store listing, signed AAB
 
 Planned after v1.0: PDF reports, before/after pairs, voice notes, photo map,
 custom watermark, altitude and compass, team sharing.
@@ -64,7 +64,7 @@ custom watermark, altitude and compass, team sharing.
 
 ## Building
 
-Requires JDK 17 and the Android SDK (compileSdk 35).
+Requires JDK 17 and the Android SDK (compileSdk 36).
 
 ```bash
 ./gradlew assembleDebug      # debug APK
