@@ -129,7 +129,7 @@ jobs:
       - name: Name the debug APK for humans
         run: |
           APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
-          mv "$APK" app/build/outputs/apk/debug/roshan-camera-debug.apk
+          mv "$APK" app/build/outputs/apk/debug/RoshanCamera-latest.apk
 
       - name: Upload build output and reports
         if: always()
@@ -145,11 +145,11 @@ jobs:
       - name: Publish the debug APK as a downloadable test build
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: test-build
+          tag_name: latest
           name: Latest test build
           body: |
             Debug build of the latest commit on `main`. Tap
-            `roshan-camera-debug.apk` below to install it on a phone.
+            `RoshanCamera-latest.apk` below to install it on a phone.
 
             Signed with the standard Android debug key, so it installs
             alongside a Play Store copy rather than replacing it. Not for
