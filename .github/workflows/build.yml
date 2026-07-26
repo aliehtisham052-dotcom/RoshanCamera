@@ -40,46 +40,79 @@ jobs:
             gradle wrapper --gradle-version 8.14.3
           fi
 
+      # Every Gradle invocation is teed into one log so a failure can be turned
+      # into annotations below. Job logs are not reachable from every
+      # environment, and a red build that will not say why costs a whole cycle.
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        id: tests
+        continue-on-error: true
+        run: set -o pipefail; ./gradlew testDebugUnitTest --stacktrace 2>&1 | tee -a gradle-output.log
 
       - name: Lint
         id: lint
         continue-on-error: true
-        run: ./gradlew lintDebug --stacktrace
+        run: set -o pipefail; ./gradlew lintDebug --stacktrace 2>&1 | tee -a gradle-output.log
 
-      - name: Annotate lint problems
+      - name: Assemble debug APK
+        id: assemble
+        continue-on-error: true
+        run: set -o pipefail; ./gradlew assembleDebug --stacktrace 2>&1 | tee -a gradle-output.log
+
+      - name: Annotate build failures
         if: always()
         run: |
           python3 - <<'PY'
-          import glob, xml.etree.ElementTree as ET
+          import os, re
 
-          level = {"Fatal": "error", "Error": "error", "Warning": "warning"}
-          found = 0
-          for report in glob.glob("app/build/reports/lint-results-*.xml"):
-              for issue in ET.parse(report).getroot().findall("issue"):
-                  sev = issue.get("severity", "Warning")
-                  if sev not in level:
-                      continue
-                  loc = issue.find("location")
-                  path = loc.get("file", "") if loc is not None else ""
-                  line = loc.get("line", "1") if loc is not None else "1"
-                  path = path.split("/RoshanCamera/", 1)[-1]
-                  msg = (issue.get("message") or "").replace("\n", " ")
-                  print(f"::{level[sev]} file={path},line={line},title={issue.get('id')}::{msg}")
-                  found += 1
-          if not found:
-              print("::notice title=Lint::No lint problems reported.")
+          try:
+              log = open("gradle-output.log", errors="replace").read().splitlines()
+          except FileNotFoundError:
+              raise SystemExit
+
+          emitted = 0
+          root = os.getcwd() + "/"
+
+          def emit(message, path=None, line=None):
+              global emitted
+              if emitted >= 40:
+                  return
+              message = " ".join(message.split())
+              if not message:
+                  return
+              where = f"file={path},line={line or 1}," if path else ""
+              print(f"::error {where}title=Build failure::{message[:900]}")
+              emitted += 1
+
+          kotlin = re.compile(r"^e: file://(?P<path>[^:]+):(?P<line>\d+):\d+ (?P<msg>.*)$")
+          aapt = re.compile(r"^(?:ERROR|error): (?P<path>/[^:]+):(?P<line>\d+):?\s*(?P<msg>.*)$")
+
+          for raw in log:
+              m = kotlin.match(raw.strip()) or aapt.match(raw.strip())
+              if m:
+                  emit(m.group("msg"), m.group("path").replace(root, ""), m.group("line"))
+
+          for i, raw in enumerate(log):
+              if raw.strip().startswith("* What went wrong:"):
+                  block = []
+                  for follow in log[i + 1:i + 12]:
+                      if follow.strip().startswith("* Try:"):
+                          break
+                      block.append(follow.strip())
+                  emit(" ".join(block))
+
+          for raw in log:
+              if " FAILED" in raw and "> Task" not in raw:
+                  emit(raw.strip())
+
+          if emitted == 0:
+              print("::notice title=Build::No failure lines matched in the Gradle output.")
           PY
 
-      - name: Fail the build if lint failed
-        if: steps.lint.outcome == 'failure'
+      - name: Fail if any Gradle step failed
+        if: steps.tests.outcome == 'failure' || steps.lint.outcome == 'failure' || steps.assemble.outcome == 'failure'
         run: |
-          echo "Lint reported problems — see the annotations above."
+          echo "tests=${{ steps.tests.outcome }} lint=${{ steps.lint.outcome }} assemble=${{ steps.assemble.outcome }}"
           exit 1
-
-      - name: Assemble debug APK
-        run: ./gradlew assembleDebug --stacktrace
 
       - name: Assemble release APK (unsigned, for size only)
         run: ./gradlew assembleRelease --stacktrace
@@ -98,19 +131,13 @@ jobs:
           APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -1)
           mv "$APK" app/build/outputs/apk/debug/roshan-camera-debug.apk
 
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: roshan-camera-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-
-      - name: Upload test and lint reports
+      - name: Upload build output and reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: reports
           path: |
+            gradle-output.log
             app/build/reports/tests/**
             app/build/reports/lint-results-debug.html
           if-no-files-found: ignore
