@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/viewfinder_bg">
@@ -55,74 +56,221 @@
 
     </LinearLayout>
 
+    <!-- Right-side vertical controls, per the owner's mockup: settings,
+         flash, photo ratio, compass on/off. -->
     <LinearLayout
-        android:id="@+id/stampCard"
-        android:layout_width="0dp"
+        android:id="@+id/sideControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="18dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/gpsChip">
+
+        <ImageButton
+            android:id="@+id/sideSettings"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_side_btn"
+            android:contentDescription="@string/settings"
+            android:padding="10dp"
+            android:src="@drawable/ic_settings"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/sideFlash"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_side_btn"
+            android:contentDescription="@string/flash"
+            android:padding="10dp"
+            android:src="@drawable/ic_flash"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:id="@+id/sideRatio"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_side_btn"
+            android:contentDescription="@string/photo_ratio"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="3:4" />
+
+        <ImageButton
+            android:id="@+id/sideCompass"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_side_btn"
+            android:contentDescription="@string/compass"
+            android:padding="10dp"
+            android:src="@drawable/ic_row_compass"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- The live overlay: exactly what will be burned onto the photo,
+         as stacked pills in the owner's mockup arrangement. -->
+    <LinearLayout
+        android:id="@+id/stampStack"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@drawable/bg_stamp_card"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="10dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="@id/preview"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <ImageView
-            android:id="@+id/stampMap"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@color/chrome_bar"
-            android:contentDescription="@string/gallery"
-            android:scaleType="centerCrop" />
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintWidth_max="330dp">
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:id="@+id/pillDateTime"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_blue"
+                android:src="@drawable/ic_row_calendar" />
 
             <TextView
-                android:id="@+id/stampRegion"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:id="@+id/tvDateTime"
+                style="@style/StampPillTextBold"
+                tools:text="24/07/2026 11:45 AM" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillCoords"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_green"
+                android:src="@drawable/ic_row_pin" />
 
             <TextView
-                android:id="@+id/stampAddress"
+                android:id="@+id/tvCoords"
+                style="@style/StampPillText"
+                tools:text="34.0522° N, 71.5375° E" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillAddress"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_indigo"
+                android:src="@drawable/ic_row_home" />
+
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="1dp"
-                android:textColor="@color/on_ink"
-                android:textSize="11sp" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvRegion"
+                    style="@style/StampPillTextBold"
+                    tools:text="Islamabad, Pakistan" />
+
+                <TextView
+                    android:id="@+id/tvExact"
+                    style="@style/StampPillText"
+                    android:textSize="11sp"
+                    tools:text="F-6 Markaz, Islamabad 44000" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillAltitude"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_teal"
+                android:src="@drawable/ic_row_mountain" />
 
             <TextView
-                android:id="@+id/stampCoords"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/on_ink_muted"
-                android:textSize="10sp" />
+                android:id="@+id/tvAltitude"
+                style="@style/StampPillText"
+                tools:text="Altitude: 540 m | Accuracy: 5 m" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillWeather"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_amber"
+                android:src="@drawable/ic_row_sun" />
 
             <TextView
-                android:id="@+id/stampTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/on_ink_muted"
-                android:textSize="10sp" />
+                android:id="@+id/tvWeather"
+                style="@style/StampPillText"
+                tools:text="Weather: 28°C, Sunny" />
 
         </LinearLayout>
 
         <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/verify"
-            android:src="@drawable/ic_qr"
-            app:tint="@color/on_ink" />
+            android:id="@+id/imgMap"
+            android:layout_width="132dp"
+            android:layout_height="84dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_map_thumb"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <LinearLayout
+            android:id="@+id/pillCompass"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_teal"
+                android:src="@drawable/ic_row_compass" />
+
+            <TextView
+                android:id="@+id/tvCompass"
+                style="@style/StampPillText"
+                tools:text="NE 45°" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pillWatermark"
+            style="@style/StampPill">
+
+            <ImageView
+                style="@style/StampBadge"
+                android:contentDescription="@null"
+                android:backgroundTint="@color/badge_slate"
+                android:src="@drawable/ic_row_cam" />
+
+            <TextView
+                android:id="@+id/tvWatermark"
+                style="@style/StampPillTextBold"
+                tools:text="Captured by Roshan Camera" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -173,20 +321,32 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <ImageView
-            android:id="@+id/openGallery"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="@color/chrome_bar"
-            android:contentDescription="@string/gallery"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_gallery"
-            app:tint="@color/icon_gallery" />
-
-        <Space
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/openGallery"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@color/chrome_bar"
+                android:contentDescription="@string/gallery"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_gallery"
+                app:tint="@android:color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/gallery"
+                android:textColor="@color/on_ink"
+                android:textSize="11sp" />
+
+        </LinearLayout>
 
         <ImageButton
             android:id="@+id/shutter"
@@ -197,29 +357,31 @@
             android:src="@drawable/ic_shutter"
             app:tint="@color/viewfinder_bg" />
 
-        <Space
+        <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
 
-        <ImageButton
-            android:id="@+id/openVerify"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/verify"
-            android:src="@drawable/ic_verify"
-            app:tint="@color/icon_verify" />
+            <ImageButton
+                android:id="@+id/openSettings"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/settings"
+                android:src="@drawable/ic_settings"
+                app:tint="@android:color/white" />
 
-        <ImageButton
-            android:id="@+id/openSettings"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:layout_marginStart="6dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/settings"
-            android:src="@drawable/ic_settings"
-            app:tint="@color/icon_settings" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/settings"
+                android:textColor="@color/on_ink"
+                android:textSize="11sp" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

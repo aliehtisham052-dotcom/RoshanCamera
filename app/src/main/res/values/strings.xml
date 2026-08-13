@@ -55,4 +55,23 @@
     <string name="flash">Flash</string>
     <string name="grid">Grid</string>
     <string name="settings_camera">Camera</string>
+
+    <!-- Overlay rows (mockup design) -->
+    <string name="altitude_row">Altitude: %1$s | Accuracy: %2$d m</string>
+    <string name="altitude_unknown">—</string>
+    <string name="altitude_metres" translatable="false">%1$d m</string>
+    <string name="weather_row">Weather: %1$s</string>
+    <string name="weather_temp_only" translatable="false">%1$d°C</string>
+    <string name="weather_temp_cond" translatable="false">%1$d°C, %2$s</string>
+    <string name="cond_sunny">Sunny</string>
+    <string name="cond_partly">Partly cloudy</string>
+    <string name="cond_cloudy">Cloudy</string>
+    <string name="cond_fog">Fog</string>
+    <string name="cond_drizzle">Drizzle</string>
+    <string name="cond_rain">Rain</string>
+    <string name="cond_snow">Snow</string>
+    <string name="cond_thunder">Thunderstorm</string>
+    <string name="captured_by">Captured by %1$s</string>
+    <string name="compass">Compass</string>
+    <string name="photo_ratio">Photo ratio</string>
 </resources>

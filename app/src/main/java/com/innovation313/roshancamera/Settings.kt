@@ -30,11 +30,23 @@ class Settings(context: Context) {
         get() = prefs.getString(KEY_LANGUAGE, null)
         set(value) = prefs.edit().putString(KEY_LANGUAGE, value).apply()
 
+    /** False = 3:4 (default), true = 9:16, toggled by the side ratio button. */
+    var ratioWide: Boolean
+        get() = prefs.getBoolean(KEY_RATIO_WIDE, false)
+        set(value) = prefs.edit().putBoolean(KEY_RATIO_WIDE, value).apply()
+
+    /** Compass row on the overlay and the photo. On by default, per the mockup. */
+    var compassOn: Boolean
+        get() = prefs.getBoolean(KEY_COMPASS, true)
+        set(value) = prefs.edit().putBoolean(KEY_COMPASS, value).apply()
+
     private companion object {
         const val FILE = "roshan_camera_settings"
         const val KEY_BUSINESS_NAME = "business_name"
         const val KEY_LANGUAGE = "language_tag"
         const val KEY_FLASH = "flash_on"
         const val KEY_GRID = "grid_on"
+        const val KEY_RATIO_WIDE = "ratio_wide"
+        const val KEY_COMPASS = "compass_on"
     }
 }

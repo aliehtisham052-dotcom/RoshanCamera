@@ -44,4 +44,18 @@
     <string name="flash">فلیش</string>
     <string name="grid">گرڈ</string>
     <string name="settings_camera">کیمرہ</string>
+    <string name="altitude_row">بلندی: %1$s | درستگی: %2$d m</string>
+    <string name="altitude_unknown">—</string>
+    <string name="weather_row">موسم: %1$s</string>
+    <string name="cond_sunny">دھوپ</string>
+    <string name="cond_partly">ہلکے بادل</string>
+    <string name="cond_cloudy">بادل</string>
+    <string name="cond_fog">دھند</string>
+    <string name="cond_drizzle">بوندا باندی</string>
+    <string name="cond_rain">بارش</string>
+    <string name="cond_snow">برف باری</string>
+    <string name="cond_thunder">گرج چمک</string>
+    <string name="captured_by">تصویر بذریعہ %1$s</string>
+    <string name="compass">قطب نما</string>
+    <string name="photo_ratio">تصویر کا تناسب</string>
 </resources>

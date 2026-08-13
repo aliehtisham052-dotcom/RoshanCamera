@@ -99,6 +99,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/flashSwitch" />
 
+    <Button
+        android:id="@+id/openVerify"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="16dp"
+        android:backgroundTint="@color/accent_green"
+        android:text="@string/verify"
+        android:textColor="@android:color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/gridSwitch" />
+
     <TextView
         android:id="@+id/languageLabel"
         android:layout_width="0dp"
@@ -111,7 +124,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/gridSwitch" />
+        app:layout_constraintTop_toBottomOf="@id/openVerify" />
 
     <Button
         android:id="@+id/languageEnglish"

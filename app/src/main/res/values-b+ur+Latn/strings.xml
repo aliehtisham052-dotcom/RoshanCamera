@@ -44,4 +44,18 @@
     <string name="flash">Flash</string>
     <string name="grid">Grid</string>
     <string name="settings_camera">Camera</string>
+    <string name="altitude_row">Bulandi: %1$s | Accuracy: %2$d m</string>
+    <string name="altitude_unknown">—</string>
+    <string name="weather_row">Mausam: %1$s</string>
+    <string name="cond_sunny">Dhoop</string>
+    <string name="cond_partly">Halke badal</string>
+    <string name="cond_cloudy">Badal</string>
+    <string name="cond_fog">Dhund</string>
+    <string name="cond_drizzle">Boonda baandi</string>
+    <string name="cond_rain">Barish</string>
+    <string name="cond_snow">Barf baari</string>
+    <string name="cond_thunder">Garaj chamak</string>
+    <string name="captured_by">Captured by %1$s</string>
+    <string name="compass">Qutb numa</string>
+    <string name="photo_ratio">Photo ratio</string>
 </resources>

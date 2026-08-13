@@ -1,5 +1,6 @@
 package com.innovation313.roshancamera
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -32,6 +33,9 @@ class SettingsActivity : AppCompatActivity() {
         binding.flashSwitch.setOnCheckedChangeListener { _, on -> settings.flashOn = on }
         binding.gridSwitch.setOnCheckedChangeListener { _, on -> settings.gridOn = on }
         binding.back.setOnClickListener { finish() }
+        binding.openVerify.setOnClickListener {
+            startActivity(Intent(this, VerifyActivity::class.java))
+        }
 
         binding.save.setOnClickListener {
             settings.businessName = binding.businessName.text?.toString()

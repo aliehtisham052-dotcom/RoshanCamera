@@ -8,17 +8,23 @@ import android.provider.Settings
 import android.view.View
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.Paint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,6 +33,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.innovation313.roshancamera.databinding.ActivityMainBinding
 import com.innovation313.roshancamera.location.AddressResolver
+import com.innovation313.roshancamera.location.CompassEngine
 import com.innovation313.roshancamera.location.LocationEngine
 import com.innovation313.roshancamera.location.LocationState
 import com.innovation313.roshancamera.location.StaleReason
@@ -37,6 +44,7 @@ import com.innovation313.roshancamera.proof.Proof
 import com.innovation313.roshancamera.proof.ProofLedger
 import com.innovation313.roshancamera.proof.ProofRecord
 import com.innovation313.roshancamera.stamp.StampContent
+import com.innovation313.roshancamera.stamp.StampIcons
 import com.innovation313.roshancamera.stamp.StampRenderer
 import com.innovation313.roshancamera.storage.PhotoStore
 import com.innovation313.roshancamera.storage.ThumbnailLoader
@@ -48,10 +56,14 @@ import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
- * The camera screen.
+ * The camera screen, in the owner's mockup design: a stack of live pills up
+ * the lower-left — date/time, coordinates, address, altitude and accuracy,
+ * weather, map, compass, watermark — mirroring exactly what will be burned
+ * onto the photo, with settings/flash/ratio/compass controls down the right.
  *
  * The one rule that shapes this class: **the shutter never waits.** Capture
  * hands back an in-memory frame and the button is live again immediately;
@@ -64,13 +76,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
 
     private val locationEngine by lazy { LocationEngine(this) }
+    private val compassEngine by lazy { CompassEngine(this) }
     private val addressResolver by lazy { AddressResolver(this) }
     private val photoStore by lazy { PhotoStore(this) }
     private val ledger by lazy { ProofLedger(this) }
     private val settings by lazy { Settings(this) }
     private val weather by lazy { WeatherProvider() }
     private val mapTiles by lazy { MapTileProvider() }
-    private var lastTempC: Int? = null
+
+    private var lastWeather: WeatherProvider.Weather? = null
+    private var latestAzimuth: Int? = null
 
     private var imageCapture: ImageCapture? = null
     private var latestState: LocationState = LocationState.Searching
@@ -78,6 +93,19 @@ class MainActivity : AppCompatActivity() {
     private var lastResolvedBucket: String? = null
 
     private var askedThisLaunch = false
+
+    /** The same badge art the overlay shows, pre-rendered for the photo stamp. */
+    private val stampIcons by lazy {
+        StampIcons(
+            calendar = badgeBitmap(R.drawable.ic_row_calendar, R.color.badge_blue),
+            pin = badgeBitmap(R.drawable.ic_row_pin, R.color.badge_green),
+            home = badgeBitmap(R.drawable.ic_row_home, R.color.badge_indigo),
+            mountain = badgeBitmap(R.drawable.ic_row_mountain, R.color.badge_teal),
+            sun = badgeBitmap(R.drawable.ic_row_sun, R.color.badge_amber),
+            compass = badgeBitmap(R.drawable.ic_row_compass, R.color.badge_teal),
+            camera = badgeBitmap(R.drawable.ic_row_cam, R.color.badge_slate)
+        )
+    }
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -98,14 +126,27 @@ class MainActivity : AppCompatActivity() {
         binding.openGallery.setOnClickListener {
             startActivity(Intent(this, GalleryActivity::class.java))
         }
-        binding.openVerify.setOnClickListener {
-            startActivity(Intent(this, VerifyActivity::class.java))
-        }
         binding.openSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        binding.sideSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        binding.sideFlash.setOnClickListener { toggleFlash() }
+        binding.sideRatio.setOnClickListener { toggleRatio() }
+        binding.sideCompass.setOnClickListener { toggleCompass() }
 
         binding.permissionAction.setOnClickListener { onPermissionActionClicked() }
+
+        // Until the first fix, only the clock and the watermark have anything
+        // truthful to say; the location rows appear as the data arrives.
+        binding.pillCoords.visibility = View.GONE
+        binding.pillAltitude.visibility = View.GONE
+        binding.pillWeather.visibility = View.GONE
+        binding.pillCompass.visibility = View.GONE
+        binding.tvExact.visibility = View.GONE
+        binding.tvRegion.text = getString(R.string.gps_searching)
+
         startStampClock()
 
         // TextureView rather than SurfaceView. Several OEM builds never deliver
@@ -114,17 +155,20 @@ class MainActivity : AppCompatActivity() {
         binding.preview.implementationMode = PreviewView.ImplementationMode.COMPATIBLE
 
         observeLocation()
+        observeCompass()
     }
 
     override fun onResume() {
         super.onResume()
         // Settings sits above this screen, so everything it controls is
-        // re-read here. The camera screen itself carries no toggles by the
-        // owner's direction — nothing between the person and the shutter.
+        // re-read here — the side buttons and the settings switches drive the
+        // same stored values.
         flashOn = settings.flashOn
         imageCapture?.flashMode =
             if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
         binding.gridOverlay.visibility = if (settings.gridOn) View.VISIBLE else View.GONE
+        renderSideControls()
+        binding.tvWatermark.text = watermarkText()
     }
 
     override fun onStart() {
@@ -133,11 +177,13 @@ class MainActivity : AppCompatActivity() {
         // screen with a permission newly granted just works.
         applyPermissionState()
         loadGalleryThumb()
+        if (settings.compassOn) compassEngine.start()
     }
 
     override fun onStop() {
         super.onStop()
         locationEngine.stop()
+        compassEngine.stop()
     }
 
     private fun granted(permission: String): Boolean =
@@ -201,19 +247,75 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // ---- Side controls -----------------------------------------------------
+
+    private fun toggleFlash() {
+        settings.flashOn = !settings.flashOn
+        flashOn = settings.flashOn
+        imageCapture?.flashMode =
+            if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF
+        renderSideControls()
+    }
+
+    private fun toggleRatio() {
+        settings.ratioWide = !settings.ratioWide
+        renderSideControls()
+        // The ratio lives inside the camera binding, so the camera restarts.
+        if (REQUIRED_PERMISSIONS.all(::granted)) startCamera()
+    }
+
+    private fun toggleCompass() {
+        settings.compassOn = !settings.compassOn
+        if (settings.compassOn) compassEngine.start() else compassEngine.stop()
+        renderSideControls()
+        renderCompassRow()
+    }
+
+    private fun renderSideControls() {
+        binding.sideFlash.imageTintList = ContextCompat.getColorStateList(
+            this, if (settings.flashOn) R.color.accent_amber else android.R.color.white
+        )
+        binding.sideCompass.imageTintList = ContextCompat.getColorStateList(
+            this, if (settings.compassOn) R.color.accent_amber else android.R.color.white
+        )
+        binding.sideRatio.text = if (settings.ratioWide) RATIO_WIDE_LABEL else RATIO_CLASSIC_LABEL
+    }
+
+    private fun renderCompassRow() {
+        val az = latestAzimuth
+        if (settings.compassOn && az != null) {
+            binding.pillCompass.visibility = View.VISIBLE
+            binding.tvCompass.text = CompassEngine.describe(az)
+        } else {
+            binding.pillCompass.visibility = View.GONE
+        }
+    }
+
+    // ---- Camera ------------------------------------------------------------
+
     private fun startCamera() {
         val providerFuture = ProcessCameraProvider.getInstance(this)
         providerFuture.addListener({
             val provider = providerFuture.get()
 
-            val preview = Preview.Builder().build().also {
-                it.surfaceProvider = binding.preview.surfaceProvider
-            }
+            val resolutionSelector = ResolutionSelector.Builder()
+                .setAspectRatioStrategy(
+                    if (settings.ratioWide) AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY
+                    else AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY
+                )
+                .build()
+
+            val preview = Preview.Builder()
+                .setResolutionSelector(resolutionSelector)
+                .build().also {
+                    it.surfaceProvider = binding.preview.surfaceProvider
+                }
 
             // MINIMIZE_LATENCY is the whole point: it trades a little noise
             // reduction for a shutter that fires when it is pressed.
             val capture = ImageCapture.Builder()
                 .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .setResolutionSelector(resolutionSelector)
                 .setFlashMode(if (flashOn) ImageCapture.FLASH_MODE_ON else ImageCapture.FLASH_MODE_OFF)
                 .build()
 
@@ -231,6 +333,8 @@ class MainActivity : AppCompatActivity() {
             }
         }, ContextCompat.getMainExecutor(this))
     }
+
+    // ---- Live overlay ------------------------------------------------------
 
     private fun observeLocation() {
         lifecycleScope.launch {
@@ -252,37 +356,60 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun observeCompass() {
+        lifecycleScope.launch {
+            compassEngine.azimuthDegrees.collectLatest { az ->
+                latestAzimuth = az
+                renderCompassRow()
+            }
+        }
+    }
+
     /**
-     * The live stamp card mirrors what will be drawn on the next photo — the
-     * single most-requested convenience in competitor reviews. The address is
+     * The live pills mirror what will be drawn on the next photo — the single
+     * most-requested convenience in competitor reviews. The address is
      * re-resolved only when the ~100 m bucket changes, so walking around a
      * yard does not fire a geocoder call per second.
      */
     private fun updateStampPreview(state: LocationState) {
         val fix = state.fixOrNull
         if (fix == null) {
-            binding.stampAddress.text = getString(R.string.gps_searching)
-            binding.stampCoords.text = ""
+            binding.pillCoords.visibility = View.GONE
+            binding.pillAltitude.visibility = View.GONE
+            binding.tvExact.visibility = View.GONE
+            binding.tvRegion.text = getString(R.string.gps_searching)
             return
         }
-        binding.stampCoords.text = buildString {
-            append(addressResolver.coordinates(fix.latitude, fix.longitude))
-            if (fix.hasAccuracy()) append("  ·  ±").append(fix.accuracy.roundToInt()).append(" m")
-        }
+
+        binding.pillCoords.visibility = View.VISIBLE
+        binding.tvCoords.text = coordsText(fix.latitude, fix.longitude)
+
+        binding.pillAltitude.visibility = View.VISIBLE
+        val accuracy = if (fix.hasAccuracy()) fix.accuracy.roundToInt() else 0
+        binding.tvAltitude.text = getString(
+            R.string.altitude_row, altitudeText(fix.hasAltitude(), fix.altitude), accuracy
+        )
+
         val bucket = String.format(Locale.US, "%.3f/%.3f", fix.latitude, fix.longitude)
         if (bucket != lastResolvedBucket) {
             lastResolvedBucket = bucket
             lifecycleScope.launch {
                 val resolved = addressResolver.resolve(fix.latitude, fix.longitude)
-                binding.stampRegion.text = resolved.region
-                binding.stampAddress.text = resolved.exact
+                binding.tvRegion.text = resolved.region
+                binding.tvExact.text = resolved.exact
+                binding.tvExact.visibility = View.VISIBLE
             }
             lifecycleScope.launch {
-                lastTempC = weather.currentTempC(fix.latitude, fix.longitude)
+                lastWeather = weather.current(fix.latitude, fix.longitude)
+                lastWeather?.let {
+                    binding.pillWeather.visibility = View.VISIBLE
+                    binding.tvWeather.text = getString(R.string.weather_row, weatherText(it))
+                }
             }
             lifecycleScope.launch {
                 mapTiles.tileFor(fix.latitude, fix.longitude)?.let {
-                    binding.stampMap.setImageBitmap(it.bitmap)
+                    binding.imgMap.setImageBitmap(it.bitmap)
+                    binding.imgMap.visibility = View.VISIBLE
                 }
             }
         }
@@ -292,10 +419,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 while (true) {
-                    binding.stampTime.text = buildString {
-                        append(STAMP_TIME.format(Date()))
-                        lastTempC?.let { append("  ·  ").append(it).append("°C") }
-                    }
+                    binding.tvDateTime.text = STAMP_TIME.format(Date())
                     delay(1_000)
                 }
             }
@@ -322,6 +446,68 @@ class MainActivity : AppCompatActivity() {
         is LocationState.Locked ->
             getString(R.string.gps_locked, state.accuracyMetres.roundToInt())
     }
+
+    // ---- Row text ----------------------------------------------------------
+
+    /** "34.0522° N, 71.5375° E" — the exact form on the owner's mockup. */
+    private fun coordsText(latitude: Double, longitude: Double): String {
+        val ns = if (latitude >= 0) "N" else "S"
+        val ew = if (longitude >= 0) "E" else "W"
+        return String.format(
+            Locale.US, "%.4f° %s, %.4f° %s", abs(latitude), ns, abs(longitude), ew
+        )
+    }
+
+    private fun altitudeText(has: Boolean, altitudeMetres: Double): String =
+        if (has) getString(R.string.altitude_metres, altitudeMetres.roundToInt())
+        else getString(R.string.altitude_unknown)
+
+    /** "28°C, Sunny" — condition included only when the WMO code maps to one. */
+    private fun weatherText(w: WeatherProvider.Weather): String {
+        val condition = conditionRes(w.wmoCode)?.let(::getString)
+        return if (condition != null) {
+            getString(R.string.weather_temp_cond, w.tempC, condition)
+        } else {
+            getString(R.string.weather_temp_only, w.tempC)
+        }
+    }
+
+    private fun conditionRes(wmoCode: Int): Int? = when (wmoCode) {
+        0 -> R.string.cond_sunny
+        1, 2 -> R.string.cond_partly
+        3 -> R.string.cond_cloudy
+        45, 48 -> R.string.cond_fog
+        in 51..57 -> R.string.cond_drizzle
+        in 61..67, in 80..82 -> R.string.cond_rain
+        in 71..77, 85, 86 -> R.string.cond_snow
+        in 95..99 -> R.string.cond_thunder
+        else -> null
+    }
+
+    private fun watermarkText(): String {
+        val name = settings.businessName?.takeIf { it.isNotBlank() }
+            ?: getString(R.string.app_name)
+        return getString(R.string.captured_by, name)
+    }
+
+    /** A colored round badge with the white glyph — same art as the overlay. */
+    private fun badgeBitmap(iconRes: Int, colorRes: Int): Bitmap {
+        val size = 96
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = ContextCompat.getColor(this@MainActivity, colorRes)
+        })
+        AppCompatResources.getDrawable(this, iconRes)?.let { glyph ->
+            val inset = size / 5
+            glyph.setBounds(inset, inset, size - inset, size - inset)
+            glyph.setTint(Color.WHITE)
+            glyph.draw(canvas)
+        }
+        return bitmap
+    }
+
+    // ---- Capture -----------------------------------------------------------
 
     private fun capture() {
         val capture = imageCapture ?: run {
@@ -358,6 +544,9 @@ class MainActivity : AppCompatActivity() {
         val accuracy = if (fix.hasAccuracy()) fix.accuracy.roundToInt() else 0
         val latitude = fix.latitude
         val longitude = fix.longitude
+        val hasAltitude = fix.hasAltitude()
+        val altitude = fix.altitude
+        val azimuth = if (settings.compassOn) latestAzimuth else null
         val takenAt = Date()
 
         lifecycleScope.launch {
@@ -365,26 +554,30 @@ class MainActivity : AppCompatActivity() {
                 withContext(Dispatchers.Default) {
                     val sourceHash = Proof.hashOf(jpegBytes)
                     val resolved = addressResolver.resolve(latitude, longitude)
-                    val tempC = weather.currentTempC(latitude, longitude)
+                    val currentWeather = weather.current(latitude, longitude)
                     val tile = mapTiles.tileFor(latitude, longitude)
 
                     val content = StampContent(
                         regionLine = resolved.region,
                         exactAddress = resolved.exact,
-                        dateTimeLine = buildString {
-                            append(STAMP_TIME.format(takenAt))
-                            append("  ·  ")
-                            append(addressResolver.coordinates(latitude, longitude))
-                            append(" ±").append(accuracy).append(" m")
-                        },
-                        temperature = tempC?.let { "$it°C" },
+                        dateTimeLine = STAMP_TIME.format(takenAt),
+                        temperature = currentWeather?.let { "${it.tempC}°C" },
                         businessName = settings.businessName,
                         qrPayload = Proof.mapsUrl(latitude, longitude),
-                        mapTile = tile?.let { MapTileBitmap(it.bitmap, it.pinX, it.pinY) }
+                        mapTile = tile?.let { MapTileBitmap(it.bitmap, it.pinX, it.pinY) },
+                        coordsLine = coordsText(latitude, longitude),
+                        altitudeLine = getString(
+                            R.string.altitude_row, altitudeText(hasAltitude, altitude), accuracy
+                        ),
+                        weatherLine = currentWeather?.let {
+                            getString(R.string.weather_row, weatherText(it))
+                        },
+                        compassLine = azimuth?.let { CompassEngine.describe(it) },
+                        watermarkLine = watermarkText()
                     )
 
                     val frame = jpegBytes.toBitmap(rotationDegrees)
-                    val stamped = StampRenderer.render(frame, content)
+                    val stamped = StampRenderer.render(frame, content, stampIcons)
                     if (stamped !== frame) frame.recycle()
 
                     val saved = photoStore.save(stamped)
@@ -447,6 +640,11 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.CAMERA,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
-        val STAMP_TIME = SimpleDateFormat("EEE, dd MMM yyyy, hh:mm a", Locale.getDefault())
+
+        /** "24/07/2026 11:45 AM" — the exact form on the owner's mockup. */
+        val STAMP_TIME = SimpleDateFormat("dd/MM/yyyy hh:mm a", Locale.getDefault())
+
+        const val RATIO_CLASSIC_LABEL = "3:4"
+        const val RATIO_WIDE_LABEL = "9:16"
     }
 }

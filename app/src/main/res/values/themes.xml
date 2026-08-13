@@ -12,6 +12,42 @@
         <item name="android:navigationBarColor">@color/viewfinder_bg</item>
     </style>
 
+    <!-- One overlay row in the owner's mockup design: a dark rounded pill
+         holding a colored round icon badge and its text. -->
+    <style name="StampPill">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:background">@drawable/bg_stamp_pill</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">5dp</item>
+        <item name="android:paddingBottom">5dp</item>
+    </style>
+
+    <style name="StampBadge">
+        <item name="android:layout_width">22dp</item>
+        <item name="android:layout_height">22dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <item name="android:background">@drawable/bg_icon_badge</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:tint">@android:color/white</item>
+    </style>
+
+    <style name="StampPillText">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:maxLines">1</item>
+    </style>
+
+    <style name="StampPillTextBold" parent="StampPillText">
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <!--
         The launch theme, not a splash Activity.
 

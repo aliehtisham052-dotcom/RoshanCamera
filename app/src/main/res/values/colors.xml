@@ -34,6 +34,17 @@
     <color name="on_ink">#F2EDE4</color>
     <color name="on_ink_muted">#9AA0AC</color>
 
+    <!-- Stamp overlay pills (mockup design: stacked dark pills, colored icon badges) -->
+    <color name="stamp_pill">#B3081221</color>
+    <color name="side_btn_bg">#8C0B1526</color>
+    <color name="badge_blue">#1E88E5</color>
+    <color name="badge_green">#43A047</color>
+    <color name="badge_indigo">#5C6BC0</color>
+    <color name="badge_teal">#00897B</color>
+    <color name="badge_amber">#FFB300</color>
+    <color name="badge_red">#E53935</color>
+    <color name="badge_slate">#546E7A</color>
+
     <!-- Location status -->
     <color name="status_locked">#4ADE80</color>
     <color name="status_locked_bg">#EB0C3D2A</color>
