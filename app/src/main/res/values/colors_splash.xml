@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- The splash keeps its original dark field; only the in-app scheme changed. -->
-    <color name="splash_bg">#0D0F14</color>
+    <color name="splash_bg">#010309</color>
 </resources>
